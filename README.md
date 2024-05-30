@@ -1,4 +1,3 @@
-<h2>Virtual Vacation</h2>
 Sometimes, when I least expect it, I realize just how big our world really is.
 </br></br>
 I made Virtual Vacation to share a fragment of that wonder with you. 
