@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Virtual Vacation</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Reddit+Mono:wght@200..900&display=swap" rel="stylesheet">
+
+  <link rel="icon" type="image/png" href="/favicon_io/favicon-16x16.png" sizes="16x16">
+  <link rel="icon" type="image/png" href="/favicon_io/favicon-32x32.png" sizes="32x32">
+
+  <style>
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: 'Reddit Mono', sans-serif;
+      letter-spacing: -1px;
+    }
+
+    h1,
+    h4 {
+      margin: 0;
+      color: white;
+    }
+
+    #subtitle {
+      font-weight: lighter;
+    }
+
+    #map-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      /* Set z-index to 0 */
+    }
+
+    #pano {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    #header-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 50%;
+      left: 25%;
+      text-align: center;
+      padding-top: 20px;
+      padding-bottom: 20px;
+      padding-left: 20px;
+      padding-right: 20px;
+      background-color: #e8943add;
+      border-radius: 0 0 10px 10px;
+      /* Transparent white background */
+      z-index: 2;
+    }
+
+    #refresh {
+      font-family: 'Reddit Mono', sans-serif;
+      font-size: 1.2em;
+      color: white;
+      background-color: #e8943add;
+      font-weight: bolder;
+      padding: 10px 20px;
+
+
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      width: 30%;
+      height: 50px;
+      transform: translateX(-40%);
+
+      border-radius: 5px;
+      border: none;
+      z-index: 1;
+    }
+
+    #refresh:hover {
+      background-color: #e8943aee;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+
+  <div id="map-container">
+
+    <div id="header-container">
+      <h1 id="main-title">Virtual Vacation 🏖️</h1>
+      <h4 id="subtitle">Travel without spending money (or talking to people)!</h4>
+    </div>
+
+    <div id="pano"></div>
+    <button id="refresh" onClick="window.location.reload();">
+      Take me away &#8634;
+    </button>
+
+  </div>
+
+  <audio type="audio/mp3" src="bg_music.mp3" autoplay loop>
+</body>
+
+<script
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA3eVtdadbwz33bWpJa1T8Qo8JaEeHl5tM&callback=initialize&v=weekly&solution_channel=GMP_CCS_streetview_v1"
+  defer></script>
+<script>
+
+  // Unfortunately I couldn't host this JSON on a server another local file due to a weird CORS error - this was the next best thing
+  const places = [
+    {
+      "name": "Eiffel Tower",
+      "coordinates": {"lat": 48.8584, "lng": 2.2945}
+    },
+    {
+      "name": "Great Wall of China",
+      "coordinates": {"lat": 40.4319, "lng": 116.5704}
+    },
+    {
+      "name": "Machu Picchu",
+      "coordinates": {"lat": -13.1631, "lng": -72.5450}
+    },
+    {
+      "name": "Taj Mahal",
+      "coordinates": {"lat": 27.1751, "lng": 78.0421}
+    },
+    {
+      "name": "Grand Canyon",
+      "coordinates": {"lat": 36.1069, "lng": -112.1129}
+    },
+    {
+      "name": "Colosseum",
+      "coordinates": {"lat": 41.8902, "lng": 12.4922}
+    },
+    {
+      "name": "Statue of Liberty",
+      "coordinates": {"lat": 40.6892, "lng": -74.0445}
+    },
+    {
+      "name": "Great Barrier Reef",
+      "coordinates": {"lat": -18.2871, "lng": 147.6992}
+    },
+    {
+      "name": "Christ the Redeemer",
+      "coordinates": {"lat": -22.9519, "lng": -43.2105}
+    },
+    {
+      "name": "Santorini",
+      "coordinates": {"lat": 36.3932, "lng": 25.4615}
+    },
+    {
+      "name": "Stonehenge",
+      "coordinates": {"lat": 51.1789, "lng": -1.8262}
+    },
+    {
+      "name": "Sagrada Familia",
+      "coordinates": {"lat": 41.4036, "lng": 2.1744}
+    },
+    {
+      "name": "Yellowstone National Park",
+      "coordinates": {"lat": 44.4280, "lng": -110.5885}
+    },
+    {
+      "name": "Pyramids of Giza",
+      "coordinates": {"lat": 29.9792, "lng": 31.1342}
+    },
+    {
+      "name": "Sydney Opera House",
+      "coordinates": {"lat": -33.8568, "lng": 151.2153}
+    },
+    {
+      "name": "Mount Fuji",
+      "coordinates": {"lat": 35.3606, "lng": 138.7274}
+    },
+    {
+      "name": "Niagara Falls",
+      "coordinates": {"lat": 43.0962, "lng": -79.0377}
+    },
+    {
+      "name": "Acropolis of Athens",
+      "coordinates": {"lat": 37.9715, "lng": 23.7257}
+    },
+    {
+      "name": "Angkor Wat",
+      "coordinates": {"lat": 13.4125, "lng": 103.8667}
+    },
+    {
+      "name": "Petra",
+      "coordinates": {"lat": 30.3285, "lng": 35.4444}
+    },
+    {
+      "name": "Banff National Park",
+      "coordinates": {"lat": 51.4968, "lng": -115.9281}
+    },
+    {
+      "name": "Bora Bora",
+      "coordinates": {"lat": -16.5004, "lng": -151.7415}
+    },
+    {
+      "name": "Venice Canals",
+      "coordinates": {"lat": 45.4408, "lng": 12.3155}
+    },
+    {
+      "name": "Galápagos Islands",
+      "coordinates": {"lat": -0.9538, "lng": -90.9656}
+    },
+    {
+      "name": "Maui",
+      "coordinates": {"lat": 20.7984, "lng": -156.3319}
+    },
+    {
+      "name": "Zion National Park",
+      "coordinates": {"lat": 37.2982, "lng": -113.0263}
+    },
+    {
+      "name": "Plitvice Lakes National Park",
+      "coordinates": {"lat": 44.8808, "lng": 15.6178}
+    },
+    {
+      "name": "Cinque Terre",
+      "coordinates": {"lat": 44.1270, "lng": 9.7003}
+    },
+    {
+      "name": "Yosemite National Park",
+      "coordinates": {"lat": 37.8651, "lng": -119.5383}
+    },
+    {
+      "name": "Iguazu Falls",
+      "coordinates": {"lat": -25.6953, "lng": -54.4367}
+    },
+    {
+      "name": "Bagan",
+      "coordinates": {"lat": 21.1667, "lng": 94.8667}
+    },
+    {
+      "name": "Glacier National Park",
+      "coordinates": {"lat": 48.7596, "lng": -113.7870}
+    },
+    {
+      "name": "Victoria Falls",
+      "coordinates": {"lat": -17.9243, "lng": 25.8572}
+    },
+    {
+      "name": "Burj Khalifa",
+      "coordinates": {"lat": 25.1972, "lng": 55.2744}
+    },
+    {
+      "name": "Serengeti National Park",
+      "coordinates": {"lat": -2.3333, "lng": 34.8333}
+    },
+    {
+      "name": "Mount Kilimanjaro",
+      "coordinates": {"lat": -3.0674, "lng": 37.3556}
+    },
+    {
+      "name": "Great Ocean Road",
+      "coordinates": {"lat": -38.6655, "lng": 143.1050}
+    },
+    {
+      "name": "Blue Lagoon",
+      "coordinates": {"lat": 63.8804, "lng": -22.4495}
+    },
+    {
+      "name": "Neuschwanstein Castle",
+      "coordinates": {"lat": 47.5576, "lng": 10.7498}
+    },
+    {
+      "name": "Bali",
+      "coordinates": {"lat": -8.3405, "lng": 115.0920}
+    },
+    {
+      "name": "Great Smoky Mountains National Park",
+      "coordinates": {"lat": 35.6118, "lng": -83.4895}
+    },
+    {
+      "name": "Mount Everest",
+      "coordinates": {"lat": 27.9881, "lng": 86.9250}
+    },
+    {
+      "name": "Tulum",
+      "coordinates": {"lat": 20.2110, "lng": -87.4656}
+    },
+    {
+      "name": "Maldives",
+      "coordinates": {"lat": 3.2028, "lng": 73.2207}
+    },
+    {
+      "name": "Alhambra",
+      "coordinates": {"lat": 37.1761, "lng": -3.5881}
+    },
+    {
+      "name": "Dubai Marina",
+      "coordinates": {"lat": 25.0781, "lng": 55.1372}
+    },
+    {
+      "name": "Uluru",
+      "coordinates": {"lat": -25.3444, "lng": 131.0369}
+    },
+    {
+      "name": "Ha Long Bay",
+      "coordinates": {"lat": 20.9101, "lng": 107.1839}
+    },
+    {
+      "name": "Cappadocia",
+      "coordinates": {"lat": 38.6450, "lng": 34.8275}
+    },
+    {
+      "name": "Ban Gioc–Detian Falls",
+      "coordinates": {"lat": 22.8531, "lng": 106.7254}
+    },
+    {
+      "name": "Sossusvlei",
+      "coordinates": {"lat": -24.7314, "lng": 15.3000}
+    },
+    {
+      "name": "Mount Cook",
+      "coordinates": {"lat": -43.7356, "lng": 170.0968}
+    },
+    {
+      "name": "Kotor",
+      "coordinates": {"lat": 42.4247, "lng": 18.7712}
+    },
+    {
+      "name": "Lake Bled",
+      "coordinates": {"lat": 46.3625, "lng": 14.0886}
+    },
+    {
+      "name": "Cappadocia Hot Air Balloons",
+      "coordinates": {"lat": 38.6700, "lng": 34.8331}
+    },
+    {
+      "name": "Cappadocia Fairy Chimneys",
+      "coordinates": {"lat": 38.6421, "lng": 34.8265}
+    },
+    {
+      "name": "Zhangjiajie National Forest Park",
+      "coordinates": {"lat": 29.3200, "lng": 110.4786}
+    },
+    {
+      "name": "Pamukkale Thermal Pools",
+      "coordinates": {"lat": 37.9137, "lng": 29.1187}
+    },
+    {
+      "name": "Glowworm Caves",
+      "coordinates": {"lat": -38.2615, "lng": 175.1073}
+    },
+    {
+      "name": "Antelope Canyon",
+      "coordinates": {"lat": 36.8619, "lng": -111.3743}
+    },
+    {
+      "name": "Blue Hole",
+      "coordinates": {"lat": 17.3156, "lng": -87.5346}
+    },
+    {
+      "name": "Giants Causeway",
+      "coordinates": {"lat": 55.2408, "lng": -6.5116}
+    },
+    {
+      "name": "Reed Flute Cave",
+      "coordinates": {"lat": 25.2819, "lng": 110.2848}
+    },
+    {
+      "name": "Mount Roraima",
+      "coordinates": {"lat": 5.1442, "lng": -60.7647}
+    },
+    {
+      "name": "Ha Long Bay",
+      "coordinates": {"lat": 20.9101, "lng": 107.1839}
+    },
+    {
+      "name": "Waitomo Caves",
+      "coordinates": {"lat": -38.2615, "lng": 175.1072}
+    },
+    {
+      "name": "Torres del Paine",
+      "coordinates": {"lat": -51.1830, "lng": -73.2425}
+    },
+    {
+      "name": "Mount Fitz Roy",
+      "coordinates": {"lat": -49.2754, "lng": -73.0457}
+    },
+    {
+      "name": "Plitvice Lakes",
+      "coordinates": {"lat": 44.8658, "lng": 15.5820}
+    },
+    {
+      "name": "Salar de Uyuni",
+      "coordinates": {"lat": -20.1338, "lng": -67.4891}
+    },
+    {
+      "name": "Cenote Ik Kil",
+      "coordinates": {"lat": 20.6665, "lng": -88.5722}
+    },
+    {
+      "name": "Trango Towers",
+      "coordinates": {"lat": 35.7517, "lng": 76.3692}
+    },
+    {
+      "name": "Huacachina Oasis",
+      "coordinates": {"lat": -14.0875, "lng": -75.7630}
+    },
+    {
+      "name": "Pamukkale Travertine Terraces",
+      "coordinates": {"lat": 37.9242, "lng": 29.1288}
+    },
+    {
+      "name": "Apostle Islands Sea Caves",
+      "coordinates": {"lat": 46.9912, "lng": -90.6670}
+    },
+    {
+      "name": "Namib Desert",
+      "coordinates": {"lat": -24.8064, "lng": 15.3102}
+    },
+    {
+      "name": "Angkor Wat",
+      "coordinates": {"lat": 13.4125, "lng": 103.8670}
+    },
+    {
+      "name": "Mount Everest Base Camp",
+      "coordinates": {"lat": 28.0026, "lng": 86.8528}
+    },
+    {
+      "name": "Petra",
+      "coordinates": {"lat": 30.3285, "lng": 35.4444}
+    },
+    {
+      "name": "Cliffs of Moher",
+      "coordinates": {"lat": 52.9715, "lng": -9.4309}
+    },
+    {
+      "name": "Tiger's Nest Monastery",
+      "coordinates": {"lat": 27.4915, "lng": 89.3645}
+    },
+    {
+      "name": "Cinque Terre",
+      "coordinates": {"lat": 44.1052, "lng": 9.7136}
+    },
+    {
+      "name": "Horseshoe Bend",
+      "coordinates": {"lat": 36.8796, "lng": -111.5101}
+    },
+    {
+      "name": "Victoria Falls",
+      "coordinates": {"lat": -17.9243, "lng": 25.8572}
+    },
+    {
+      "name": "Socotra Island",
+      "coordinates": {"lat": 12.4634, "lng": 53.8236}
+    },
+    {
+      "name": "Avenue of the Baobabs",
+      "coordinates": {"lat": -20.2539, "lng": 44.4186}
+    },
+    {
+      "name": "Moraine Lake",
+      "coordinates": {"lat": 51.3215, "lng": -116.1860}
+    },
+    {
+      "name": "Neuschwanstein Castle",
+      "coordinates": {"lat": 47.5576, "lng": 10.7498}
+    },
+    {
+      "name": "Trolltunga",
+      "coordinates": {"lat": 60.1240, "lng": 6.7386}
+    },
+    {
+      "name": "Palawan Island",
+      "coordinates": {"lat": 10.2381, "lng": 119.3943}
+    },
+    {
+      "name": "Lake Baikal",
+      "coordinates": {"lat": 53.5587, "lng": 108.1650}
+    },
+    {
+      "name": "Banff National Park",
+      "coordinates": {"lat": 51.4968, "lng": -115.9281}
+    },
+    {
+      "name": "Mount Fuji",
+      "coordinates": {"lat": 35.3606, "lng": 138.7274}
+    },
+    {
+      "name": "Giant's Causeway",
+      "coordinates": {"lat": 55.2408, "lng": -6.5116}
+    },
+    {
+      "name": "The Wave",
+      "coordinates": {"lat": 36.9950, "lng": -112.0069}
+    },
+    {
+      "name": "Havasu Falls",
+      "coordinates": {"lat": 36.2558, "lng": -112.6974}
+    },
+    {
+      "name": "Great Barrier Reef",
+      "coordinates": {"lat": -18.2871, "lng": 147.6992}
+    },
+    {
+      "name": "Santorini",
+      "coordinates": {"lat": 36.3932, "lng": 25.4615}
+    },
+    {
+      "name": "Kilimanjaro",
+      "coordinates": {"lat": -3.0674, "lng": 37.3556}
+    },
+    {
+      "name": "Rock Islands Southern Lagoon",
+      "coordinates": {"lat": 7.2974, "lng": 134.3800}
+    },
+    {
+      "name": "Mount Ararat",
+      "coordinates": {"lat": 39.7022, "lng": 44.2984}
+    },
+    {
+      "name": "Taj Mahal",
+      "coordinates": {"lat": 27.1751, "lng": 78.0421}
+    },
+    {
+      "name": "Leshan Giant Buddha",
+      "coordinates": {"lat": 29.5516, "lng": 103.7692}
+    },
+    {
+      "name": "Socotra Island",
+      "coordinates": {"lat": 12.4634, "lng": 53.8236}
+    },
+    {
+      "name": "Uluru",
+      "coordinates": {"lat": -25.3444, "lng": 131.0369}
+    },
+    {
+      "name": "Mount Elbrus",
+      "coordinates": {"lat": 43.3498, "lng": 42.4453}
+    },
+    {
+      "name": "Wulingyuan Scenic Area",
+      "coordinates": {"lat": 29.3446, "lng": 110.4792}
+    },
+    {
+      "name": "The Matterhorn",
+      "coordinates": {"lat": 45.9763, "lng": 7.6586}
+    },
+    {
+      "name": "Salzburg Old Town",
+      "coordinates": {"lat": 47.7972, "lng": 13.0477}
+    },
+    {
+      "name": "Sossusvlei",
+      "coordinates": {"lat": -24.7308, "lng": 15.3111}
+    },
+    {
+      "name": "Mount Kailash",
+      "coordinates": {"lat": 31.0688, "lng": 81.3180}
+    },
+    {
+      "name": "Porto Katsiki Beach",
+      "coordinates": {"lat": 38.6014, "lng": 20.5560}
+    },
+    {
+      "name": "Cabo da Roca",
+      "coordinates": {"lat": 38.7804, "lng": -9.4989}
+    },
+    {
+      "name": "La Sagrada Familia",
+      "coordinates": {"lat": 41.4036, "lng": 2.1744}
+    },
+    {
+      "name": "Blue Mosque",
+      "coordinates": {"lat": 41.0055, "lng": 28.9768}
+    },
+    {
+      "name": "Alhambra",
+      "coordinates": {"lat": 37.1760, "lng": -3.5881}
+    },
+    {
+      "name": "Trollstigen",
+      "coordinates": {"lat": 62.4598, "lng": 7.6656}
+    },
+    {
+      "name": "St. Michael's Mount",
+      "coordinates": {"lat": 50.1178, "lng": -5.4770}
+    },
+    {
+      "name": "Tiger Leaping Gorge",
+      "coordinates": {"lat": 27.3015, "lng": 100.0878}
+    },
+    {
+      "name": "Notre-Dame Cathedral",
+      "coordinates": {"lat": 48.8529, "lng": 2.3500}
+    },
+    {
+      "name": "Verona Arena",
+      "coordinates": {"lat": 45.4386, "lng": 10.9941}
+    },
+    {
+      "name": "Bastei Bridge",
+      "coordinates": {"lat": 50.9655, "lng": 14.0736}
+    },
+    {
+      "name": "Plaza Mayor",
+      "coordinates": {"lat": 40.4155, "lng": -3.7074}
+    },
+    {
+      "name": "Hạ Long Bay",
+      "coordinates": {"lat": 20.9101, "lng": 107.1839}
+    },
+    {
+      "name": "Meenakshi Temple",
+      "coordinates": {"lat": 9.9195, "lng": 78.1190}
+    },
+    {
+      "name": "The Bund",
+      "coordinates": {"lat": 31.2336, "lng": 121.4908}
+    },
+    {
+      "name": "Christ the Redeemer",
+      "coordinates": {"lat": -22.9519, "lng": -43.2105}
+    },
+    {
+      "name": "Perito Moreno Glacier",
+      "coordinates": {"lat": -50.4976, "lng": -73.1373}
+    },
+    {
+      "name": "Canals of Amsterdam",
+      "coordinates": {"lat": 52.3752, "lng": 4.8995}
+    },
+    {
+      "name": "Burj Khalifa",
+      "coordinates": {"lat": 25.1972, "lng": 55.2744}
+    },
+    {
+      "name": "St. Peter's Basilica",
+      "coordinates": {"lat": 41.9022, "lng": 12.4539}
+    },
+    {
+      "name": "Red Square",
+      "coordinates": {"lat": 55.7539, "lng": 37.6208}
+    },
+    {
+      "name": "Dubrovnik Old Town",
+      "coordinates": {"lat": 42.6401, "lng": 18.1083}
+    },
+    {
+      "name": "Kotor Bay",
+      "coordinates": {"lat": 42.4247, "lng": 18.7712}
+    },
+    {
+      "name": "Trolltunga",
+      "coordinates": {"lat": 60.1240, "lng": 6.7386}
+    },
+    {
+      "name": "La Alhambra",
+      "coordinates": {"lat": 37.1760, "lng": -3.5881}
+    },
+    {
+      "name": "Colosseum",
+      "coordinates": {"lat": 41.8902, "lng": 12.4922}
+    },
+    {
+      "name": "Mount Etna",
+      "coordinates": {"lat": 37.7510, "lng": 14.9934}
+    },
+    {
+      "name": "Lake Bled",
+      "coordinates": {"lat": 46.3625, "lng": 14.0906}
+    },
+    {
+      "name": "Fairy Pools",
+      "coordinates": {"lat": 57.2510, "lng": -6.2725}
+    },
+    {
+      "name": "Mount Toubkal",
+      "coordinates": {"lat": 31.0641, "lng": -7.9178}
+    },
+    {
+      "name": "Pena Palace",
+      "coordinates": {"lat": 38.7874, "lng": -9.3904}
+    },
+    {
+      "name": "Chichen Itza",
+      "coordinates": {"lat": 20.6843, "lng": -88.5678}
+    },
+    {
+      "name": "Angel Falls",
+      "coordinates": {"lat": 5.9701, "lng": -62.5362}
+    },
+    {
+      "name": "Bastei Bridge",
+      "coordinates": {"lat": 50.9655, "lng": 14.0736}
+    },
+    {
+      "name": "Kjeragbolten",
+      "coordinates": {"lat": 59.0415, "lng": 6.5853}
+    },
+    {
+      "name": "Mount Vesuvius",
+      "coordinates": {"lat": 40.8224, "lng": 14.4289}
+    },
+    {
+      "name": "Hạ Long Bay",
+      "coordinates": {"lat": 20.9101, "lng": 107.1839}
+    },
+    {
+      "name": "Leshan Giant Buddha",
+      "coordinates": {"lat": 29.5516, "lng": 103.7692}
+    },
+    {
+      "name": "Badlands National Park",
+      "coordinates": {"lat": 43.8554, "lng": -102.3397}
+    },
+    {
+      "name": "Twelve Apostles",
+      "coordinates": {"lat": -38.6639, "lng": 143.1051}
+    },
+    {
+      "name": "Horseshoe Bend",
+      "coordinates": {"lat": 36.8796, "lng": -111.5101}
+    },
+    {
+      "name": "Redwood National and State Parks",
+      "coordinates": {"lat": 41.2132, "lng": -124.0046}
+    },
+    {
+      "name": "Milford Sound",
+      "coordinates": {"lat": -44.6704, "lng": 167.9279}
+    },
+    {
+      "name": "Palawan Island",
+      "coordinates": {"lat": 10.2381, "lng": 119.3943}
+    },
+    {
+      "name": "Rock of Gibraltar",
+      "coordinates": {"lat": 36.1408, "lng": -5.3536}
+    },
+    {
+      "name": "Goreme National Park",
+      "coordinates": {"lat": 38.6435, "lng": 34.8266}
+    },
+    {
+      "name": "Antelope Canyon",
+      "coordinates": {"lat": 36.8619, "lng": -111.3743}
+    },
+    {
+      "name": "Mount Roraima",
+      "coordinates": {"lat": 5.1442, "lng": -60.7647}
+    },
+    {
+      "name": "Cenote Ik Kil",
+      "coordinates": {"lat": 20.6665, "lng": -88.5722}
+    },
+    {
+      "name": "Angkor Wat",
+      "coordinates": {"lat": 13.4125, "lng": 103.8670}
+    },
+    {
+      "name": "Table Mountain",
+      "coordinates": {"lat": -33.9628, "lng": 18.4098}
+    },
+    {
+      "name": "Yosemite Valley",
+      "coordinates": {"lat": 37.8651, "lng": -119.5383}
+    },
+    {
+      "name": "Great Ocean Road",
+      "coordinates": {"lat": -38.6803, "lng": 143.3921}
+    },
+    {
+      "name": "Victoria Falls",
+      "coordinates": {"lat": -17.9243, "lng": 25.8572}
+    },
+    {
+      "name": "Mount Fuji",
+      "coordinates": {"lat": 35.3606, "lng": 138.7274}
+    },
+    {
+      "name": "Giant's Causeway",
+      "coordinates": {"lat": 55.2408, "lng": -6.5116}
+    },
+    {
+      "name": "Glowworm Caves",
+      "coordinates": {"lat": -38.2615, "lng": 175.1073}
+    },
+    {
+      "name": "Monument Valley",
+      "coordinates": {"lat": 36.9981, "lng": -110.0986}
+    },
+    {
+      "name": "Skaftafell Ice Cave",
+      "coordinates": {"lat": 64.0280, "lng": -16.9667}
+    },
+    {
+      "name": "Moraine Lake",
+      "coordinates": {"lat": 51.3215, "lng": -116.1860}
+    },
+    {
+      "name": "Lofoten Islands",
+      "coordinates": {"lat": 68.3045, "lng": 14.6698}
+    },
+    {
+      "name": "Lake Louise",
+      "coordinates": {"lat": 51.4254, "lng": -116.1773}
+    },
+    {
+      "name": "Positano",
+      "coordinates": {"lat": 40.6281, "lng": 14.4847}
+    },
+    {
+      "name": "Skógafoss",
+      "coordinates": {"lat": 63.5321, "lng": -19.5112}
+    },
+    {
+      "name": "Jasper National Park",
+      "coordinates": {"lat": 52.8734, "lng": -117.9543}
+    },
+    {
+      "name": "Salar de Uyuni",
+      "coordinates": {"lat": -20.1338, "lng": -67.4891}
+    }
+
+  ]
+
+
+
+
+  // Finds a random location and calls a function to display it #pano
+  function initialize() {
+    // Start the process to find a valid street view
+    var location = getRandomLocation(places)
+    var latitude = location["lat"]
+    var longitude = location["lng"]
+
+    runStreetView(latitude, longitude);
+  }
+
+  window.initialize = initialize;
+
+
+  // Populates #pano with a street view using Google Maps API
+  function runStreetView(latitude, longitude) {
+
+    const pos = {lat: latitude, lng: longitude};
+    const streetViewService = new google.maps.StreetViewService();
+
+    streetViewService.getPanorama(
+      {
+        location: pos,
+        radius: 100, // Adjust radius as needed
+      },
+      (data, status) => {
+        if (status === google.maps.StreetViewStatus.OK) {
+          // Street view found, create panorama
+          const panorama = new google.maps.StreetViewPanorama(
+            document.getElementById("pano"),
+            {
+              position: pos,
+              pov: {
+                heading: 0,
+                pitch: 0,
+              },
+            }
+          );
+        } else {
+          // No street view found, generate new position and try again
+          var location = getRandomLocation(places)
+          var latitude = location["lat"]
+          var longitude = location["lng"]
+          runStreetView(latitude, longitude);
+
+        }
+      }
+    );
+  }
+
+  // Returns information about random location when given a collection of data
+  function getRandomLocation(places) {
+    var num_places = places.length;
+    var rand_index = getRandom(0, num_places);
+
+    var attraction = places[rand_index]["name"]
+    var lat = places[rand_index]["coordinates"]["lat"]
+    var lng = places[rand_index]["coordinates"]["lng"]
+
+    return {
+      "attraction": attraction,
+      "lat": lat,
+      "lng": lng
+    }
+  }
+
+  // Returns random integer within range
+  function getRandom(min, max) {
+    var random_float = Math.random() * (max - min) + min;
+    var random_int = Math.floor(random_float)
+    return random_int;
+  }
+
+
+</script>
+</body>
+
+</html>
