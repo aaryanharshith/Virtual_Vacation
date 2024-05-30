@@ -1,0 +1,77 @@
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: 'Reddit Mono', sans-serif;
+      letter-spacing: -1px;
+    }
+
+    h1,
+    h4 {
+      margin: 0;
+      color: white;
+    }
+
+    #subtitle {
+      font-weight: lighter;
+    }
+
+    #map-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      /* Set z-index to 0 */
+    }
+
+    #pano {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    #header-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 50%;
+      left: 25%;
+      text-align: center;
+      padding-top: 20px;
+      padding-bottom: 20px;
+      padding-left: 20px;
+      padding-right: 20px;
+      background-color: #e8943add;
+      border-radius: 0 0 10px 10px;
+      /* Transparent white background */
+      z-index: 2;
+    }
+
+    #refresh {
+      font-family: 'Reddit Mono', sans-serif;
+      font-size: 1.2em;
+      color: white;
+      background-color: #e8943add;
+      font-weight: bolder;
+      padding: 10px 20px;
+
+
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      width: 30%;
+      height: 50px;
+      transform: translateX(-40%);
+
+      border-radius: 5px;
+      border: none;
+      z-index: 1;
+    }
+
+    #refresh:hover {
+      background-color: #e8943aee;
+      cursor: pointer;
+    }
